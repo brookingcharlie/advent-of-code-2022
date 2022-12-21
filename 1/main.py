@@ -13,7 +13,9 @@ def get_totals(lines):
 
 def main():
   lines = stdin.read().splitlines()
-  print(max(get_totals(lines)))
+  totals = get_totals(lines)
+  print(max(totals))
+  print(sum(sorted(totals)[-3:]))
 
 if __name__ == "__main__":
     main()
