@@ -1,0 +1,7 @@
+version: "3.9"
+services:
+  main:
+    build: python:3.11.1
+    volumes:
+      - .:/code
+    command: python /code/main.py
