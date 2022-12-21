@@ -6,24 +6,25 @@ class Shape(Enum):
   PAPER = auto()
   SCISSORS = auto()
 
-their_shape = {'A': Shape.ROCK, 'B': Shape.PAPER, 'C': Shape.SCISSORS}
 winner = {Shape.ROCK: Shape.PAPER, Shape.PAPER: Shape.SCISSORS, Shape.SCISSORS: Shape.ROCK}
-loser = {v: k for k, v in winner.items()}
 
-def parse_round_1(line):
-  my_shape = {'X': Shape.ROCK, 'Y': Shape.PAPER, 'Z': Shape.SCISSORS}
-  round = line.split()
-  return (their_shape[round[0]], my_shape[round[1]])
+def strategy_1(their_shape, my_token):
+  my_shape_by_token = {'X': Shape.ROCK, 'Y': Shape.PAPER, 'Z': Shape.SCISSORS}
+  return my_shape_by_token[my_token]
 
-def parse_round_2(line):
-  round = line.split()
-  theirs = their_shape[round[0]]
-  mine = (
-    winner[theirs] if round[1] == 'Z' else
-    theirs if round[1] == 'Y' else
-    loser[theirs]
+def strategy_2(their_shape, my_token):
+  loser = {v: k for k, v in winner.items()}
+  return (
+    winner[their_shape] if my_token == 'Z' else
+    their_shape if my_token == 'Y' else
+    loser[their_shape]
   )
-  return (theirs, mine)
+
+def parse_round(line, strategy):
+  their_shape_by_token = {'A': Shape.ROCK, 'B': Shape.PAPER, 'C': Shape.SCISSORS}
+  round = line.split()
+  their_shape = their_shape_by_token[round[0]]
+  return (their_shape, strategy(their_shape, round[1]))
 
 def score_outcome(round):
   return (
@@ -33,18 +34,18 @@ def score_outcome(round):
   )
 
 def score_round(round):
-  shape_score = {Shape.ROCK: 1, Shape.PAPER: 2, Shape.SCISSORS: 3}
-  return score_outcome(round) + shape_score[round[1]]
+  score_by_shape = {Shape.ROCK: 1, Shape.PAPER: 2, Shape.SCISSORS: 3}
+  return score_outcome(round) + score_by_shape[round[1]]
 
-def total_score(lines, parse_round):
-  rounds = [parse_round(line) for line in lines]
+def total_score(lines, strategy):
+  rounds = [parse_round(line, strategy) for line in lines]
   scores = [score_round(round) for round in rounds]
   return sum(scores)
 
 def main():
   lines = stdin.read().splitlines()
-  print(total_score(lines, parse_round_1))
-  print(total_score(lines, parse_round_2))
+  print(total_score(lines, strategy_1))
+  print(total_score(lines, strategy_2))
 
 if __name__ == "__main__":
     main()
