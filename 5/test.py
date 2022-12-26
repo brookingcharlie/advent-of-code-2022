@@ -1,5 +1,5 @@
 from unittest import TestCase
-from main import parse_sections, parse_stacks, parse_moves, make_move, solve_puzzle
+from main import parse_sections, parse_stacks, parse_moves, move_maker, solve_puzzle
 
 class Test(TestCase):
   def test_parse_sections(self):
@@ -37,8 +37,10 @@ class Test(TestCase):
   def test_make_move(self):
     stacks = [['Z', 'N', 'D'], ['M', 'C'], ['P']]
     move = (3, 0, 2)
-    expected = [[], ['M', 'C'], ['P', 'D', 'N', 'Z']]
-    self.assertEqual(make_move(stacks, move), expected)
+    expected_in_reverse = [[], ['M', 'C'], ['P', 'D', 'N', 'Z']]
+    expected_in_bulk = [[], ['M', 'C'], ['P', 'Z', 'N', 'D']]
+    self.assertEqual(move_maker(True)(stacks, move), expected_in_reverse)
+    self.assertEqual(move_maker(False)(stacks, move), expected_in_bulk)
 
   def test_solve_puzzle(self):
     lines = [
@@ -52,4 +54,5 @@ class Test(TestCase):
       'move 2 from 2 to 1',
       'move 1 from 1 to 2',
     ]
-    self.assertEqual(solve_puzzle(lines), 'CMZ')
+    self.assertEqual(solve_puzzle(lines, True), 'CMZ')
+    self.assertEqual(solve_puzzle(lines, False), 'MCD')
