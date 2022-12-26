@@ -14,7 +14,7 @@ def parse_sections(lines):
 def parse_stacks(lines):
   num_stacks = (len(lines[0]) + 1) // 4
   def reducer(stacks, line):
-    items = [*line[1:num_stacks * 4:4]]
+    items = line[1:num_stacks * 4:4]
     return [[*stack, item] if item != ' ' else stack for (stack, item) in zip(stacks, items)]
   return reduce(reducer, reversed(lines[:-1]), [[]] * num_stacks)
 
