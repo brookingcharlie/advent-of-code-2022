@@ -9,7 +9,7 @@ def find_start(line):
       [*window_at[1], char_at[1]] if len(window_at[1]) < 4 else
       [*window_at[1][1:], char_at[1]]
     )
-    return (char_at[0], window, len(set(window)) == 4)
+    return (char_at[0], window)
   result = reduce(reducer, enumerate(line), (-1, []))
   return result[0] + 1 if len(set(result[1])) == 4 else None
 
