@@ -48,4 +48,4 @@ def main():
   print(total_score(lines, strategy_2))
 
 if __name__ == "__main__":
-    main()
+  main()

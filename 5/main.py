@@ -48,4 +48,4 @@ def main():
   print(solve_puzzle(lines, False))
 
 if __name__ == "__main__":
-    main()
+  main()

@@ -23,4 +23,4 @@ def main():
   print(total(lines, has_overlap))
 
 if __name__ == "__main__":
-    main()
+  main()

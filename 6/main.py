@@ -16,4 +16,4 @@ def main():
   print(find_start(14, lines[0]))
 
 if __name__ == "__main__":
-    main()
+  main()

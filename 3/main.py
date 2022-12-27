@@ -41,4 +41,4 @@ def main():
   print(total_badge_priority(lines))
 
 if __name__ == "__main__":
-    main()
+  main()
