@@ -77,4 +77,4 @@ def main():
   print(solve_puzzle_2(lines))
 
 if __name__ == "__main__":
-  lambda positions, move: positions + move_head(positions[-1], move), main()
+  main()
