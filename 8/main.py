@@ -36,13 +36,13 @@ def find_visible_2(starting_height, traversal):
 def solve_puzzle_2(lines):
   rows = parse(lines)
   def reducer(highest_score, index):
+    tree = rows[index[0]][index[1]]
     traversals = [
       rows[index[0]][index[1] + 1:],
       list(reversed(rows[index[0]][:index[1]])),
       [row[index[1]] for row in rows[index[0] + 1:]],
       list(reversed([row[index[1]] for row in rows[:index[0]]]))
     ]
-    tree = rows[index[0]][index[1]]
     distances = [len(find_visible_2(tree.height, traversal)) for traversal in traversals]
     score = reduce(mul, distances, 1)
     return max(highest_score, score)
