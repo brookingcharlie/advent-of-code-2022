@@ -1,5 +1,5 @@
 from unittest import TestCase
-from main import Move, Direction, parse, move_head, step_tail, solve_puzzle
+from main import Move, Direction, parse, move_head, step_tail, solve_puzzle_1, solve_puzzle_2
 
 class Test(TestCase):
   def test_parse(self):
@@ -30,7 +30,7 @@ class Test(TestCase):
     self.assertEqual(step_tail((2, 4), (4, 3)), (3, 3))
     self.assertEqual(step_tail((3, 4), (1, 4)), (2, 4))
 
-  def test_solve_puzzle(self):
+  def test_solve_puzzle_1(self):
     lines = [
       'R 4',
       'U 4',
@@ -41,4 +41,17 @@ class Test(TestCase):
       'L 5',
       'R 2',
     ]
-    self.assertEqual(solve_puzzle(lines), 13)
+    self.assertEqual(solve_puzzle_1(lines), 13)
+
+  def test_solve_puzzle_2(self):
+    lines = [
+      'R 5',
+      'U 8',
+      'L 8',
+      'D 3',
+      'R 17',
+      'D 10',
+      'L 25',
+      'U 20',
+    ]
+    self.assertEqual(solve_puzzle_2(lines), 36)

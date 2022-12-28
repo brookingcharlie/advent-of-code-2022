@@ -37,6 +37,11 @@ def move_head(position, move):
     case Move(Direction.DOWN, distance):
       return [(position[0], position[1] - n) for n in range(1, distance + 1)]
 
+def project(moves):
+  def reducer(positions, move):
+    return positions + move_head(positions[-1], move)
+  return reduce(reducer, moves, [(0, 0)])
+
 def step_tail(tail_position, head_position):
   (tx, ty), (hx, hy) =  tail_position, head_position
   (dx, dy) = (abs(hx - tx), abs(hy - ty))
@@ -48,25 +53,28 @@ def step_tail(tail_position, head_position):
     return (tx + (hx - tx) // dx, ty)
   return (tx + (hx - tx) // dx, ty + (hy - ty) // dy)
 
-def move_tail(tail_positions, new_head_positions):
+def track(head_positions):
   def reducer(tail_positions, head_position):
-    new_tail_position = step_tail(tail_positions[-1], head_position)
-    return tail_positions + ([new_tail_position] if new_tail_position else [])
-  return reduce(reducer, new_head_positions, tail_positions)
+    tail_position = step_tail(tail_positions[-1], head_position)
+    return tail_positions + ([tail_position] if tail_position else [])
+  return reduce(reducer, head_positions, [(0, 0)])
 
-def solve_puzzle(lines):
+def solve_puzzle_1(lines):
   head_moves = parse(lines)
-  def reducer(state, head_move):
-    (head_positions, tail_positions) = state
-    new_head_positions = move_head(head_positions[-1], head_move)
-    all_tail_positions = move_tail(tail_positions, new_head_positions)
-    return ([*head_positions, *new_head_positions], all_tail_positions)
-  tail_positions = reduce(reducer, head_moves, ([(0, 0)], [(0, 0)]))[1]
+  head_positions = project(head_moves)
+  tail_positions = track(head_positions)
+  return len(set(tail_positions))
+
+def solve_puzzle_2(lines):
+  head_moves = parse(lines)
+  head_positions = project(head_moves)
+  tail_positions = reduce(lambda head, _: track(head), range(9), head_positions)
   return len(set(tail_positions))
 
 def main():
   lines = stdin.read().splitlines()
-  print(solve_puzzle(lines))
+  print(solve_puzzle_1(lines))
+  print(solve_puzzle_2(lines))
 
 if __name__ == "__main__":
-  main()
+  lambda positions, move: positions + move_head(positions[-1], move), main()
