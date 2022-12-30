@@ -1,8 +1,8 @@
 from unittest import TestCase
-from main import Move, Direction, parse, move_head, step_tail, solve_puzzle_1, solve_puzzle_2
+from main import Move, Direction, parse_moves, move_head, step_tail, solve_puzzle
 
 class Test(TestCase):
-  def test_parse(self):
+  def test_parse_moves(self):
     lines = ['D 2', 'U 1', 'R 7', 'L 6']
     expected = [
       Move(Direction.DOWN, 2),
@@ -10,7 +10,7 @@ class Test(TestCase):
       Move(Direction.RIGHT, 7),
       Move(Direction.LEFT, 6),
     ]
-    self.assertEqual(parse(lines), expected)
+    self.assertEqual(parse_moves(lines), expected)
 
   def test_move_head(self):
     self.assertEqual(move_head((9, 0), Move(Direction.LEFT, 2)), [(8, 0), (7, 0)])
@@ -41,7 +41,7 @@ class Test(TestCase):
       'L 5',
       'R 2',
     ]
-    self.assertEqual(solve_puzzle_1(lines), 13)
+    self.assertEqual(solve_puzzle(lines, 2), 13)
 
   def test_solve_puzzle_2(self):
     lines = [
@@ -54,4 +54,4 @@ class Test(TestCase):
       'L 25',
       'U 20',
     ]
-    self.assertEqual(solve_puzzle_2(lines), 36)
+    self.assertEqual(solve_puzzle(lines, 10), 36)
