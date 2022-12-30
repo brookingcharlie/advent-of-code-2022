@@ -1,5 +1,8 @@
 from unittest import TestCase
-from main import Noop, Addx, State, parse_instructions, apply_instruction, run_program, get_signal_strength, solve_puzzle
+from main import (
+  Noop, Addx, State, parse_instructions, apply_instruction, run_program, get_signal_strength,
+  is_pixel_lit, solve_puzzle
+)
 
 class Test(TestCase):
   def test_parse_instructions(self):
@@ -22,6 +25,14 @@ class Test(TestCase):
     self.assertEqual(get_signal_strength(states, 2), 2)
     self.assertEqual(get_signal_strength(states, 3), -3)
     self.assertEqual(get_signal_strength(states, 5), -5)
+
+  def test_is_pixel_lit(self):
+    states = [State(0, 0), State(1, 1), State(2, 16), State(3, 16), State(4, 5), State(5, 5)]
+    self.assertEqual(is_pixel_lit(states, 0), True)
+    self.assertEqual(is_pixel_lit(states, 1), True)
+    self.assertEqual(is_pixel_lit(states, 2), False)
+    self.assertEqual(is_pixel_lit(states, 3), False)
+    self.assertEqual(is_pixel_lit(states, 4), True)
 
   def test_solve_puzzle(self):
     lines = [
@@ -172,4 +183,15 @@ class Test(TestCase):
       'noop',
       'noop'
     ]
-    self.assertEqual(solve_puzzle(lines), 13140)
+    (actual_1, actual_2) = solve_puzzle(lines)
+    expected_1 = 13140
+    expected_2 = [
+      '##..##..##..##..##..##..##..##..##..##..',
+      '###...###...###...###...###...###...###.',
+      '####....####....####....####....####....',
+      '#####.....#####.....#####.....#####.....',
+      '######......######......######......####',
+      '#######.......#######.......#######.....'
+    ]
+    self.assertEqual(actual_1, expected_1)
+    self.assertEqual(actual_2, expected_2)
