@@ -47,12 +47,12 @@ class Test(TestCase):
     monkey_0 = Monkey(0, [4, 5], Multiply(3), MonkeyTest(2, {True: 1, False: 2}))
     monkey_1 = Monkey(1, [6], Add(1), MonkeyTest(23, {True: 0, False: 2}))
     monkey_2 = Monkey(2, [], Square(), MonkeyTest(6, {True: 1, False: 0}))
-    monkey_0.take_turn([monkey_0, monkey_1, monkey_2])
+    monkey_0.take_turn([monkey_0, monkey_1, monkey_2], lambda worry_level: worry_level // 3)
     self.assertEqual(monkey_0.items, [])
     self.assertEqual(monkey_1.items, [6, 4])
     self.assertEqual(monkey_2.items, [5])
 
-  def test_play_game(self):
+  def test_solve_puzzle(self):
     lines = [
       'Monkey 0:',
       '  Starting items: 79, 98',
@@ -82,4 +82,5 @@ class Test(TestCase):
       '    If true: throw to monkey 0',
       '    If false: throw to monkey 1',
     ]
-    self.assertEqual(solve_puzzle(lines), 10605)
+    self.assertEqual(solve_puzzle(lines, 20, lambda worry_level: worry_level // 3), 10605)
+    self.assertEqual(solve_puzzle(lines, 10000), 2713310158)

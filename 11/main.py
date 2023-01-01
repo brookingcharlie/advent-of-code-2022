@@ -2,6 +2,7 @@ from sys import stdin
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import reduce
+from operator import mul
 import re
 
 @dataclass
@@ -41,9 +42,9 @@ class Monkey:
   operation: Operation
   test: Test
   num_inspections: int = 0
-  def take_turn(self, monkies):
+  def take_turn(self, monkies, relieve):
     for _ in range(len(self.items)):
-      worry_level = self.operation.apply(self.items.pop(0)) // 3
+      worry_level = relieve(self.operation.apply(self.items.pop(0)))
       monkies[self.test.apply(worry_level)].receive_item(worry_level) 
       self.num_inspections += 1
   def receive_item(self, item):
@@ -78,20 +79,24 @@ def parse_monkey(lines):
 def parse_monkies(lines):
   return [parse_monkey(section) for section in parse_sections(lines)]
 
-def play_game(monkies, num_rounds):
+def play_game(monkies, num_rounds, relieve):
   for _ in range(num_rounds):
     for monkey in monkies:
-      monkey.take_turn(monkies)
+      monkey.take_turn(monkies, relieve)
 
-def solve_puzzle(lines):
+def solve_puzzle(lines, num_rounds, relieve = None):
   monkies = parse_monkies(lines)
-  play_game(monkies, 20)
+  if relieve is None:
+    n = reduce(mul, [monkey.test.divisor for monkey in monkies], 1)
+    relieve = lambda worry_level: worry_level % n
+  play_game(monkies, num_rounds, relieve)
   highest = sorted(monkey.num_inspections for monkey in monkies)[-2:]
   return highest[0] * highest[1]
 
 def main():
   lines = stdin.read().splitlines()
-  print(solve_puzzle(lines))
+  print(solve_puzzle(lines, 20, lambda worry_level: worry_level // 3))
+  print(solve_puzzle(lines, 10000))
 
 if __name__ == "__main__":
   main()
