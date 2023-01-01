@@ -7,20 +7,11 @@ from itertools import product
 class Node:
   coord: tuple[int, int]
   height: int
-
-@dataclass
-class Edge:
-  a: Node
-  b: Node
-
-@dataclass
-class Graph:
-  nodes: list[Node]
-  edges: list[Edge]
+  edges: list['Node'] = None
 
 @dataclass
 class Problem:
-  graph: Graph
+  nodes: list[Node]
   start: Node
   end: Node
 
@@ -45,44 +36,47 @@ def parse_edges(node_grid):
     if b_coord[0] not in range(len(node_grid)) or b_coord[1] not in range(len(node_grid[0])):
       return None 
     a, b = node_grid[a_coord[0]][a_coord[1]], node_grid[b_coord[0]][b_coord[1]]
-    return Edge(a, b) if b.height <= a.height + 1 else None
-  def edge_reducer(edges, coord):
+    return b if b.height <= a.height + 1 else None
+  for coord in product(range(len(node_grid)), range(len(node_grid[0]))):
     potential_edges = [create_edge(coord, step) for step in [(0, 1), (0, -1), (1, 0), (-1, 0)]]
-    return edges + [edge for edge in potential_edges if edge is not None]
-  coords = product(range(len(node_grid)), range(len(node_grid[0])))
-  return reduce(edge_reducer, coords, [])
+    node_grid[coord[0]][coord[1]].edges = [edge for edge in potential_edges if edge is not None]
 
 def parse_problem(lines, highest_letter = 'z'):
   (nodes, start, end) = parse_nodes(lines, highest_letter)
   node_grid = [[nodes[i * len(lines[0]) + j] for j in range(len(lines[0]))] for i in range(len(lines))]
-  edges = parse_edges(node_grid)
-  return Problem(Graph(nodes, edges), start, end)
+  parse_edges(node_grid)
+  return Problem(nodes, start, end)
 
-def search(problem):
+def search(problem, start):
   q = []
   explored = set()
   parent = dict()
   def get_path(v):
     return [v] if (p := parent.get(v, None)) is None else [*get_path(p), v]
-  explored.add(problem.start.coord)
-  q.append(problem.start)
+  explored.add(start.coord)
+  q.append(start)
   while q != []:
     v = q.pop(0)
     if v == problem.end:
-      return get_path(v.coord)
-    for w in [edge.b for edge in problem.graph.edges if edge.a == v]:
+      return len(get_path(v.coord)) - 1
+    for w in v.edges:
       if w.coord not in explored:
         explored.add(w.coord)
         parent[w.coord] = v.coord
         q.append(w)
+  return None
 
 def solve_puzzle(lines):
   problem = parse_problem(lines)
-  return len(search(problem)) - 1
+  from_current = search(problem, problem.start)
+  results_from_a = [search(problem, node) for node in problem.nodes if node.height == 0]
+  from_any_a = min(result for result in results_from_a if result is not None)
+  return (from_current, from_any_a)
 
 def main():
   lines = stdin.read().splitlines()
-  print(solve_puzzle(lines))
+  for solution in solve_puzzle(lines):
+    print(solution)
 
 if __name__ == "__main__":
   main()

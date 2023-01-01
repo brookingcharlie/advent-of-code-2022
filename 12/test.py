@@ -1,5 +1,5 @@
 from unittest import TestCase
-from main import Node, Edge, Graph, Problem, parse_problem, solve_puzzle
+from main import Node, Problem, parse_problem, solve_puzzle
 
 class Test(TestCase):
   def test_parse_problem(self):
@@ -7,24 +7,15 @@ class Test(TestCase):
       'Sa',
       'bE'
     ]
-    nodes = [
-      n00 := Node((0, 0), 0),
-      n01 := Node((0, 1), 0),
-      n10 := Node((1, 0), 1),
-      n11 := Node((1, 1), 2),
-    ]
-    edges = [
-      Edge(n00, n01),
-      Edge(n00, n10),
-      Edge(n01, n00),
-      Edge(n10, n11),
-      Edge(n10, n00),
-      Edge(n11, n10),
-      Edge(n11, n01),
-    ]
-    actual = parse_problem(lines, 'c')
-    expected = Problem(Graph(nodes, edges), n00, n11)
-    self.assertEqual(actual, expected)
+    problem = parse_problem(lines, 'c')
+    self.assertEqual(problem.nodes[0].coord, (0, 0))
+    self.assertEqual(problem.nodes[2].coord, (1, 0))
+    self.assertEqual(problem.nodes[0].height, 0)
+    self.assertEqual(problem.nodes[2].height, 1)
+    self.assertEqual([node.coord for node in problem.nodes[0].edges], [(0, 1), (1, 0)])
+    self.assertEqual([node.coord for node in problem.nodes[2].edges], [(1, 1), (0, 0)])
+    self.assertEqual(problem.start.coord, (0, 0))
+    self.assertEqual(problem.end.coord, (1, 1))
 
   def test_solve_puzzle(self):
     lines = [
@@ -35,5 +26,5 @@ class Test(TestCase):
       'abdefghi',
     ]
     actual = solve_puzzle(lines)
-    expected = 31
+    expected = (31, 29)
     self.assertEqual(actual, expected)
