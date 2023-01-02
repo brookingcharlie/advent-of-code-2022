@@ -9,11 +9,17 @@ class Test(TestCase):
     ]
     problem = parse_problem(lines, 'c')
     self.assertEqual(problem.nodes[0].coord, (0, 0))
+    self.assertEqual(problem.nodes[1].coord, (0, 1))
     self.assertEqual(problem.nodes[2].coord, (1, 0))
+    self.assertEqual(problem.nodes[3].coord, (1, 1))
     self.assertEqual(problem.nodes[0].height, 0)
+    self.assertEqual(problem.nodes[1].height, 0)
     self.assertEqual(problem.nodes[2].height, 1)
+    self.assertEqual(problem.nodes[3].height, 2)
     self.assertEqual([node.coord for node in problem.nodes[0].edges], [(0, 1), (1, 0)])
+    self.assertEqual([node.coord for node in problem.nodes[1].edges], [(0, 0)])
     self.assertEqual([node.coord for node in problem.nodes[2].edges], [(1, 1), (0, 0)])
+    self.assertEqual([node.coord for node in problem.nodes[3].edges], [(1, 0), (0, 1)])
     self.assertEqual(problem.start.coord, (0, 0))
     self.assertEqual(problem.end.coord, (1, 1))
 
@@ -25,6 +31,4 @@ class Test(TestCase):
       'acctuvwj',
       'abdefghi',
     ]
-    actual = solve_puzzle(lines)
-    expected = (31, 29)
-    self.assertEqual(actual, expected)
+    self.assertEqual(solve_puzzle(lines), (31, 29))
