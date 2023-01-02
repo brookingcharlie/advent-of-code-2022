@@ -6,7 +6,7 @@ from itertools import product
 class Node:
   coord: tuple[int, int]
   height: int
-  edges: list['Node'] = None
+  adjacent_nodes: list['Node'] = None
 
 @dataclass
 class Problem:
@@ -27,20 +27,23 @@ def parse_nodes(lines, highest_letter):
         nodes.append(create_node(coord, letter))
   return (nodes, start, end)
 
-def infer_edges(nodes, dimensions):
-  def infer_edge(node, offset):
+def infer_adjacent_nodes(nodes, dimensions):
+  def infer_adjacent_node(node, offset):
     (i, j) = (node.coord[0] + offset[0], node.coord[1] + offset[1])
     if i not in range(dimensions[0]) or j not in range(dimensions[1]):
       return None 
     to_node = nodes[i * dimensions[1] + j]
     return to_node if to_node.height <= node.height + 1 else None
   for node in nodes:
-    potential_edges = [infer_edge(node, offset) for offset in [(0, 1), (0, -1), (1, 0), (-1, 0)]]
-    node.edges = [edge for edge in potential_edges if edge is not None]
+    node.adjacent_nodes = [
+      adjacent_node
+      for offset in [(0, 1), (0, -1), (1, 0), (-1, 0)]
+      if (adjacent_node := infer_adjacent_node(node, offset)) is not None
+    ]
 
 def parse_problem(lines, highest_letter = 'z'):
   (nodes, start, end) = parse_nodes(lines, highest_letter)
-  infer_edges(nodes, (len(lines), len(lines[0])))
+  infer_adjacent_nodes(nodes, (len(lines), len(lines[0])))
   return Problem(nodes, start, end)
 
 def search(problem, start):
@@ -54,7 +57,7 @@ def search(problem, start):
       while (p := parent.get(path[0], None)) is not None:
         path.insert(0, p)
       return len(path) - 1
-    for w in v.edges:
+    for w in v.adjacent_nodes:
       if w.coord not in explored:
         explored.add(w.coord)
         parent[w.coord] = v.coord
