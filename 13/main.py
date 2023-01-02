@@ -1,5 +1,7 @@
 from sys import stdin
 from itertools import zip_longest
+from functools import reduce
+from operator import mul
 
 def parse_list(chars):
   if chars[0] != '[':
@@ -56,13 +58,42 @@ def in_order(pair):
         if (answer := in_order((a, [b]))) is not None:
           return answer
 
-def solve_puzzle(lines):
-  pairs_in_order = [in_order(pair) for pair in parse_pairs(lines)]
+def solve_part_1(pairs):
+  pairs_in_order = [in_order(pair) for pair in pairs]
   return sum(i + 1 for i in range(len(pairs_in_order)) if pairs_in_order[i])
+
+def quicksort(a, lo, hi):
+  if lo < 0 or lo >= hi:
+    return
+  p = partition(a, lo, hi)
+  quicksort(a, lo, p - 1)
+  quicksort(a, p + 1, hi)
+
+def partition(a, lo, hi):
+  pivot = a[hi]
+  i = lo - 1
+  for j in range(lo, hi):
+    if in_order((a[j], pivot)) != False:
+      i += 1
+      a[i], a[j] = a[j], a[i]
+  i += 1
+  a[i], a[hi] = a[hi], a[i]
+  return i
+
+def solve_part_2(pairs):
+  dividers = [[[2]], [[6]]]
+  packets = [packet for pair in pairs for packet in pair] + dividers
+  quicksort(packets, 0, len(packets) - 1)
+  return reduce(mul, [packets.index(divider) + 1 for divider in dividers], 1)
+
+def solve_puzzle(lines):
+  pairs = parse_pairs(lines)
+  return (solve_part_1(pairs), solve_part_2(pairs))
 
 def main():
   lines = stdin.read().splitlines()
-  print(solve_puzzle(lines))
+  for solution in solve_puzzle(lines):
+    print(solution)
 
 if __name__ == "__main__":
   main()

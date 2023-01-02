@@ -49,4 +49,4 @@ class Test(TestCase):
       '[1,[2,[3,[4,[5,6,7]]]],8,9]',
       '[1,[2,[3,[4,[5,6,0]]]],8,9]',
     ]
-    self.assertEqual(solve_puzzle(lines), 13)
+    self.assertEqual(solve_puzzle(lines), (13, 140))
