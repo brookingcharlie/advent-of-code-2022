@@ -8,19 +8,27 @@ class Cave:
   sand_entry: ClassVar[tuple[int, int]] = (500, 0)
   rocks: set[tuple[int, int]]
   sand: set[tuple[int, int]] = field(default_factory=set)
+  has_floor: bool = False
 
   @property
   def bounds(self):
+    obstacles = self.rocks | self.sand
     return (
-      (min(x for (x, y) in self.rocks), max(x for (x, y) in self.rocks)),
-      (self.sand_entry[1], max(y for (x, y) in self.rocks))
+      (min(x for (x, y) in obstacles), max(x for (x, y) in obstacles)),
+      (self.sand_entry[1], max(y for (x, y) in obstacles))
     )
 
   def add_sand(self):
+    if self.sand_entry in self.sand:
+      return False
     obstacles = self.rocks | self.sand
+    floor_y = max(y for (_, y) in self.rocks) + 2
     def try_move(start, offset):
       possible_x = start[0] + offset
-      possible_y = min((y - 1 for (x, y) in obstacles if x == possible_x and y > start[1]), default = None)
+      possible_y = min(
+        (y - 1 for (x, y) in obstacles if x == possible_x and y > start[1]),
+        default = floor_y - 1 if self.has_floor else None
+      )
       return (possible_x, possible_y) if possible_y is None or possible_y > start[1] else None
     current = self.sand_entry
     while True:
@@ -34,19 +42,20 @@ class Cave:
       current = move
 
   def draw(self):
+    floor_y = max(y for (_, y) in self.rocks) + 2
     def get_char(coords):
       match coords:
-        case self.sand_entry:
-          return '+'
-        case coords if coords in self.rocks:
+        case coords if coords in self.rocks or self.has_floor and coords[1] == floor_y:
           return '#'
         case coords if coords in self.sand:
           return 'o'
+        case self.sand_entry:
+          return '+'
         case _:
           return '.'
     result = [
       ''.join([get_char((x, y)) for x in range(self.bounds[0][0], self.bounds[0][1] + 1)])
-      for y in range(self.bounds[1][0], self.bounds[1][1] + 1)
+      for y in range(self.bounds[1][0], self.bounds[1][1] + 1 + (1 if self.has_floor else 0))
     ]
     return result
 
@@ -64,14 +73,18 @@ def parse_rocks(lines):
   return {(x, y) for line in lines for (x, y) in parse_rock(line)}
 
 def solve_puzzle(lines):
-  cave = Cave(parse_rocks(lines))
-  while (cave.add_sand()):
+  cave_1 = Cave(parse_rocks(lines))
+  while (cave_1.add_sand()):
     pass
-  return len(cave.sand)
+  cave_2 = Cave(parse_rocks(lines), has_floor = True)
+  while (cave_2.add_sand()):
+    pass
+  return (len(cave_1.sand), len(cave_2.sand))
 
 def main():
   lines = stdin.read().splitlines()
-  print(solve_puzzle(lines))
+  for solution in solve_puzzle(lines):
+    print(solution)
 
 if __name__ == "__main__":
   main()

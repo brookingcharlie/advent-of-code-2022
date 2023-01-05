@@ -79,5 +79,29 @@ class Test(TestCase):
     ]
     self.assertEqual(cave.draw(), expected)
 
+  def test_cave_with_floor(self):
+    lines = [
+      '496,6 -> 498,6 -> 498,4',
+      '494,9 -> 502,9 -> 502,4 -> 503,4',
+    ]
+    cave = Cave(parse_rocks(lines), has_floor = True)
+    while (cave.add_sand()):
+      pass
+    expected = [
+      '..........o..........',
+      '.........ooo.........',
+      '........ooooo........',
+      '.......ooooooo.......',
+      '......oo#ooo##o......',
+      '.....ooo#ooo#ooo.....',
+      '....oo###ooo#oooo....',
+      '...oooo.oooo#ooooo...',
+      '..oooooooooo#oooooo..',
+      '.ooo#########ooooooo.',
+      'ooooo.......ooooooooo',
+      '#####################',
+    ]
+    self.assertEqual(cave.draw(), expected)
+
   def test_solve_puzzle(self):
-    self.assertEqual(solve_puzzle(Test.example_lines), 24)
+    self.assertEqual(solve_puzzle(Test.example_lines), (24, 93))
