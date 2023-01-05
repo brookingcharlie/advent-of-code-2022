@@ -26,13 +26,12 @@ class Cave:
     while True:
       moves = (try_move(current, offset) for offset in [0, -1, 1])
       move = next((move for move in moves if move is not None), None)
-      if move is not None:
-        current = move
-      else:
+      if move is None:
         self.sand.add(current)
         return True
-      if current[1] is None:
+      if move[1] is None:
         return False
+      current = move
 
   def draw(self):
     def get_char(coords):
