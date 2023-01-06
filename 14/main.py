@@ -68,7 +68,7 @@ class Cave:
         case _:
           return '.'
     min_x = min(self.__columns.keys())
-    max_x = max(self.__columns.keys())),
+    max_x = max(self.__columns.keys())
     min_y = self.sand_entry[1]
     max_y = self.__floor_y or max(max(column.keys()) for column in self.__columns.values())
     return [
