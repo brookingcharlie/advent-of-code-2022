@@ -22,14 +22,13 @@ class Cave:
     if self.sand_entry in self.sand:
       return False
     obstacles = self.rocks | self.sand
-    floor_y = max(y for (_, y) in self.rocks) + 2
+    floor_y = max(y for (_, y) in self.rocks) + 2 if self.has_floor else None
     def try_move(start, offset):
-      possible_x = start[0] + offset
-      possible_y = min(
-        (y - 1 for (x, y) in obstacles if x == possible_x and y > start[1]),
-        default = floor_y - 1 if self.has_floor else None
-      )
-      return (possible_x, possible_y) if possible_y is None or possible_y > start[1] else None
+      if (start[0] + offset, start[1] + 1) in obstacles or self.has_floor and start[1] + 1 == floor_y:
+        return None
+      end_x = start[0] + offset
+      end_y = min((y for (x, y) in obstacles if x == end_x and y > start[1] + 1), default = floor_y)
+      return (end_x, end_y - 1 if end_y is not None else None)
     current = self.sand_entry
     while True:
       moves = (try_move(current, offset) for offset in [0, -1, 1])
@@ -53,9 +52,10 @@ class Cave:
           return '+'
         case _:
           return '.'
+    ((min_x, max_x), (min_y, max_y)) = self.bounds
     result = [
-      ''.join([get_char((x, y)) for x in range(self.bounds[0][0], self.bounds[0][1] + 1)])
-      for y in range(self.bounds[1][0], self.bounds[1][1] + 1 + (1 if self.has_floor else 0))
+      ''.join([get_char((x, y)) for x in range(min_x, max_x + 1)])
+      for y in range(min_y, max_y + 1 + (1 if self.has_floor else 0))
     ]
     return result
 
