@@ -1,57 +1,77 @@
 from sys import stdin
-from dataclasses import dataclass, field
+from enum import Enum, auto
+from dataclasses import dataclass, field, InitVar
 from typing import ClassVar
 from itertools import product
+
+class Material(Enum):
+  ROCK = auto()
+  SAND = auto()
 
 @dataclass
 class Cave:
   sand_entry: ClassVar[tuple[int, int]] = (500, 0)
-  rocks: set[tuple[int, int]]
-  sand: set[tuple[int, int]] = field(default_factory=set)
-  has_floor: bool = False
+  rocks: InitVar[set[tuple[int, int]]]
+  has_floor: InitVar[bool] = False
+  columns: dict[int, dict[int, Material]] = field(default_factory=dict)
+  floor_y: int = None
+
+  def __post_init__(self, rocks, has_floor):
+    for point in rocks:
+      self.__add_point(point, Material.ROCK)
+    self.floor_y = max(y for (_, y) in rocks) + 2 if has_floor else None
+
+  def __add_point(self, point, material):
+    self.__get_column(point[0])[point[1]] = material
+
+  def __get_column(self, x):
+    if (column := self.columns.get(x)) is None:
+      self.columns[x] = (column := dict())
+    return column
+
+  def __get_point(self, point):
+    if self.floor_y is not None and point[1] == self.floor_y:
+      return Material.ROCK
+    if (column := self.columns.get(point[0])) is None:
+      return None
+    return column.get(point[1])
 
   @property
   def bounds(self):
-    obstacles = self.rocks | self.sand
     return (
-      (min(x for (x, y) in obstacles), max(x for (x, y) in obstacles)),
-      (self.sand_entry[1], max(y for (x, y) in obstacles))
+      (min(self.columns.keys()), max(self.columns.keys())),
+      (self.sand_entry[1], self.floor_y or max(max(column.keys()) for column in self.columns.values()))
     )
 
   def add_sand(self):
-    if self.sand_entry in self.sand:
+    if self.__get_point(self.sand_entry) is not None:
       return False
-    obstacles = self.rocks | self.sand
-    floor_y = max(y for (_, y) in self.rocks) + 2 if self.has_floor else None
     def try_move(start, offset):
-      if (start[0] + offset, start[1] + 1) in obstacles or self.has_floor and start[1] + 1 == floor_y:
+      if self.__get_point((start[0] + offset, start[1] + 1)) is not None:
         return None
       end_x = start[0] + offset
-      end_y = min((y for (x, y) in obstacles if x == end_x and y > start[1] + 1), default = floor_y)
+      end_y = min((y for y in self.__get_column(end_x).keys() if y > start[1] + 1), default = self.floor_y)
       return (end_x, end_y - 1 if end_y is not None else None)
     current = self.sand_entry
     while True:
       moves = (try_move(current, offset) for offset in [0, -1, 1])
       move = next((move for move in moves if move is not None), None)
       if move is None:
-        self.sand.add(current)
+        self.__add_point(current, Material.SAND)
         return True
       if move[1] is None:
         return False
       current = move
 
   def draw(self):
-    floor_y = max(y for (_, y) in self.rocks) + 2
-    def get_char(coords):
-      match coords:
-        case coords if coords in self.rocks or self.has_floor and coords[1] == floor_y:
+    def get_char(point):
+      match self.__get_point(point):
+        case Material.ROCK:
           return '#'
-        case coords if coords in self.sand:
+        case Material.SAND:
           return 'o'
-        case self.sand_entry:
-          return '+'
         case _:
-          return '.'
+          return '+' if point == self.sand_entry else '.'
     ((min_x, max_x), (min_y, max_y)) = self.bounds
     result = [
       ''.join([get_char((x, y)) for x in range(min_x, max_x + 1)])
@@ -73,13 +93,13 @@ def parse_rocks(lines):
   return {(x, y) for line in lines for (x, y) in parse_rock(line)}
 
 def solve_puzzle(lines):
-  cave_1 = Cave(parse_rocks(lines))
-  while (cave_1.add_sand()):
-    pass
-  cave_2 = Cave(parse_rocks(lines), has_floor = True)
-  while (cave_2.add_sand()):
-    pass
-  return (len(cave_1.sand), len(cave_2.sand))
+  def fill_cave(cave):
+    num_grains = 0
+    while (cave.add_sand()):
+      num_grains += 1
+    return num_grains
+  caves = [Cave(parse_rocks(lines)), Cave(parse_rocks(lines), has_floor = True)]
+  return tuple(fill_cave(cave) for cave in caves)
 
 def main():
   lines = stdin.read().splitlines()
