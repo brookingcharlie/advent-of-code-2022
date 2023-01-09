@@ -19,7 +19,7 @@ class Sensor:
 class Area:
   sensors: list[Sensor]
   __points: dict[tuple[int, int], Item] = field(default_factory=dict)
-  __empty_ranges: dict[int, set[range]] = field(default_factory=dict)
+  __empty_ranges: dict[int, list[range]] = field(default_factory=dict)
 
   def __post_init__(self):
     for sensor in self.sensors:
@@ -29,32 +29,32 @@ class Area:
   def __build_row_empty_ranges(self, y):
     if (ranges := self.__empty_ranges.get(y)) is not None:
       return ranges
-    ranges = set()
+    ranges = []
     for sensor in self.sensors:
       distance = sensor.distance()
       dy = abs(y - sensor.position[1])
       if dy <= distance:
         dx = distance - dy
-        ranges.add(range(sensor.position[0] - dx, sensor.position[0] + dx + 1))
-    merged_ranges = self.__merge_ranges(y, ranges)
+        ranges.append(range(sensor.position[0] - dx, sensor.position[0] + dx + 1))
+    merged_ranges = self.__merge_ranges(ranges)
     self.__empty_ranges[y] = merged_ranges
     return merged_ranges
 
-  def __merge_ranges(self, y, ranges):
+  def __merge_ranges(self, ranges):
     if len(ranges) == 0:
-      return set()
-    merged_ranges = set()
-    min_x, max_x = min(r.start for r in ranges), max(r.stop - 1 for r in ranges)
+      return ranges
+    merged_ranges = []
     start, stop = None, None
-    for x in range(min_x, max_x + 2):
-      if any(x in r for r in ranges) and (x, y) not in self.__points:
-        if start is None:
-          start = x
-        stop = x + 1
-      else:
-        if start is not None:
-          merged_ranges.add(range(start, stop))
-        start, stop = None, None
+    for r in sorted(ranges, key=lambda r: r.start):
+      if start is None:
+        start, stop = r.start, r.stop
+      elif stop < r.start:
+        merged_ranges.append(range(start, stop))
+        start, stop = r.start, r.stop
+      elif stop < r.stop:
+        stop = r.stop
+    if start is not None:
+      merged_ranges.append(range(start, stop))
     return merged_ranges
 
   def __build_all_empty_ranges(self):
@@ -67,7 +67,8 @@ class Area:
       self.__build_row_empty_ranges(y)
 
   def num_empty(self, y):
-    return sum(r.stop - r.start for r in self.__build_row_empty_ranges(y))
+    points_in_range = lambda r: sum(1 for (p_x, p_y) in self.__points if p_y == y and p_x in r)
+    return sum(r.stop - r.start - points_in_range(r) for r in self.__build_row_empty_ranges(y))
 
   def tuning_frequency(self):
     (min_x, max_x), (min_y, max_y) = (sys.maxsize, -sys.maxsize), (sys.maxsize, -sys.maxsize)
@@ -76,9 +77,10 @@ class Area:
       min_y, max_y = min(min_y, sensor.position[1]), max(max_y, sensor.position[1])
     for y in range(min_y, max_y + 1):
       ranges = self.__build_row_empty_ranges(y)
-      for x in range(min_x, max_x + 1):
-        if not any(x in r for r in ranges) and (x, y) not in self.__points:
-          return 4000000 * x + y
+      if len(ranges) > 1:
+        for x in range(min_x, max_x + 1):
+          if not any(x in r for r in ranges) and (x, y) not in self.__points:
+            return 4000000 * x + y
 
   def draw(self):
     def get_char(point):
