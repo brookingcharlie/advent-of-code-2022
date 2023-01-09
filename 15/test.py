@@ -21,8 +21,8 @@ class Test(TestCase):
 
   def test_parse_sensors(self):
     sensors = parse_sensors(Test.example_lines)
-    self.assertEqual(sensors[0], Sensor(position = (2, 18), closest_beacon=(-2, 15)))
-    self.assertEqual(sensors[13], Sensor(position = (20, 1), closest_beacon=(15, 3)))
+    self.assertEqual(sensors[0], Sensor(pos=(2, 18), beacon=(-2, 15)))
+    self.assertEqual(sensors[13], Sensor(pos=(20, 1), beacon=(15, 3)))
 
   def test_area(self):
     actual = Area(parse_sensors(Test.example_lines)).draw()
