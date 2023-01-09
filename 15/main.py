@@ -69,6 +69,17 @@ class Area:
   def num_empty(self, y):
     return sum(r.stop - r.start for r in self.__build_row_empty_ranges(y))
 
+  def tuning_frequency(self):
+    (min_x, max_x), (min_y, max_y) = (sys.maxsize, -sys.maxsize), (sys.maxsize, -sys.maxsize)
+    for sensor in self.sensors:
+      min_x, max_x = min(min_x, sensor.position[0]), max(max_x, sensor.position[0])
+      min_y, max_y = min(min_y, sensor.position[1]), max(max_y, sensor.position[1])
+    for y in range(min_y, max_y + 1):
+      ranges = self.__build_row_empty_ranges(y)
+      for x in range(min_x, max_x + 1):
+        if not any(x in r for r in ranges) and (x, y) not in self.__points:
+          return 4000000 * x + y
+
   def draw(self):
     def get_char(point):
       match self.__points.get(point):
@@ -103,11 +114,12 @@ def parse_sensors(lines):
 
 def solve_puzzle(lines, y):
   area = Area(parse_sensors(lines))
-  return area.num_empty(y)
+  return (area.num_empty(y), area.tuning_frequency())
 
 def main():
   lines = sys.stdin.read().splitlines()
-  print(solve_puzzle(lines, 2000000))
+  for solution in solve_puzzle(lines, 2000000):
+    print(solution)
 
 if __name__ == "__main__":
   main()

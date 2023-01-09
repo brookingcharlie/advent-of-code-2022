@@ -68,4 +68,4 @@ class Test(TestCase):
     self.assertEqual(actual, expected)
 
   def test_solve_puzzle(self):
-    self.assertEqual(solve_puzzle(Test.example_lines, 10), 26)
+    self.assertEqual(solve_puzzle(Test.example_lines, 10), (26, 56000011))
