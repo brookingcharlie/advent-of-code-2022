@@ -50,9 +50,8 @@ class Area:
     for y in range(min_y, max_y + 1):
       ranges = self.__build_row_empty_ranges(y)
       if len(ranges) > 1:
-        for x in range(min_x, max_x + 1):
-          if not any(x in r for r in ranges):
-            return 4000000 * x + y
+        x = ranges[0].stop
+        return 4000000 * x + y
 
   def draw(self):
     def build_all_empty_ranges():
