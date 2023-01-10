@@ -11,9 +11,10 @@ class Item(Enum):
 class Sensor:
   pos: tuple[int, int]
   beacon: tuple[int, int]
+  distance: int = None
 
-  def distance(self):
-    return sum(abs(self.beacon[i] - self.pos[i]) for i in [0, 1])
+  def __post_init__(self):
+    self.distance = sum(abs(self.beacon[i] - self.pos[i]) for i in [0, 1])
 
 @dataclass
 class Area:
@@ -32,8 +33,8 @@ class Area:
     ranges = []
     for sensor in self.sensors:
       dy = abs(y - sensor.pos[1])
-      if (dy <= (distance := sensor.distance())):
-        dx = distance - dy
+      if dy <= sensor.distance:
+        dx = sensor.distance - dy
         ranges.append(range(sensor.pos[0] - dx, sensor.pos[0] + dx + 1))
     merged_ranges = merge_ranges(ranges)
     self.__empty_ranges[y] = merged_ranges
@@ -55,7 +56,7 @@ class Area:
 
   def draw(self):
     def build_all_empty_ranges():
-      sensor_y_key = lambda sensor: (sensor.pos[1] - (d := sensor.distance()), sensor.pos[1] + d)
+      sensor_y_key = lambda sensor: (sensor.pos[1] - sensor.distance, sensor.pos[1] + sensor.distance)
       (min_y, max_y) = min_max(self.sensors, sensor_y_key)
       for y in range(min_y, max_y + 1):
         self.__build_row_empty_ranges(y)
