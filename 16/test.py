@@ -17,9 +17,8 @@ class Test(TestCase):
 
   def test_parse_valves(self):
     valves = parse_valves(Test.example_lines)
-    valve_details = lambda v: (v.label, v.rate, {l.label for l in v.leads_to})
-    self.assertEqual(valve_details(valves[0]), ('AA', 0, {'DD', 'II', 'BB'}))
-    self.assertEqual(valve_details(valves[-1]), ('JJ', 21, {'II'}))
+    self.assertEqual(valves[0], Valve('AA', 0, ['DD', 'II', 'BB']))
+    self.assertEqual(valves[-1], Valve('JJ', 21, ['II']))
 
   def test_solve_puzzle(self):
-    self.assertEqual(solve_puzzle(Test.example_lines), 1651)
+    self.assertEqual(solve_puzzle(Test.example_lines), (1651, 1707))
