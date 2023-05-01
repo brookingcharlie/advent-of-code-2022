@@ -23,13 +23,13 @@ class Test(TestCase):
   def test_infer_shortcuts(self):
     actual = infer_shortcuts(parse_valves(Test.example_lines), 'AA')
     expected = {
-      'AA': {'BB': 1, 'CC': 2, 'DD': 1, 'EE': 2, 'HH': 5, 'JJ': 2},
-      'BB': {'CC': 1, 'DD': 2, 'EE': 3, 'HH': 6, 'JJ': 3},
-      'CC': {'BB': 1, 'DD': 1, 'EE': 2, 'HH': 5, 'JJ': 4},
-      'DD': {'BB': 2, 'CC': 1, 'EE': 1, 'HH': 4, 'JJ': 3},
-      'EE': {'BB': 3, 'CC': 2, 'DD': 1, 'HH': 3, 'JJ': 4},
-      'HH': {'BB': 6, 'CC': 5, 'DD': 4, 'EE': 3, 'JJ': 7},
-      'JJ': {'BB': 3, 'CC': 4, 'DD': 3, 'EE': 4, 'HH': 7},
+      'AA': {'BB': 2, 'CC': 3, 'DD': 2, 'EE': 3, 'HH': 6, 'JJ': 3},
+      'BB': {'CC': 2, 'DD': 3, 'EE': 4, 'HH': 7, 'JJ': 4},
+      'CC': {'BB': 2, 'DD': 2, 'EE': 3, 'HH': 6, 'JJ': 5},
+      'DD': {'BB': 3, 'CC': 2, 'EE': 2, 'HH': 5, 'JJ': 4},
+      'EE': {'BB': 4, 'CC': 3, 'DD': 2, 'HH': 4, 'JJ': 5},
+      'HH': {'BB': 7, 'CC': 6, 'DD': 5, 'EE': 4, 'JJ': 8},
+      'JJ': {'BB': 4, 'CC': 5, 'DD': 4, 'EE': 5, 'HH': 8},
     }
     self.assertEqual(actual, expected)
 

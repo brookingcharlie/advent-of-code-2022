@@ -18,14 +18,13 @@ def parse_valves(lines):
 
 def infer_shortcuts(valves, start):
   valve_map = {v.label: v for v in valves}
-  live = [v for v in valves if v.label == start or v.rate > 0]
   def shortest(a, b, dist=0, seen=set()):
     if b.label in a.leads_to:
       return dist + 1
     return min([s for l in a.leads_to if l not in seen and (s := shortest(valve_map[l], b, dist + 1, {*seen, a.label}))], default=None)
   return {
-    a.label: {b.label: s for b in live if a != b and b.label != start and (s := shortest(a, b))}
-    for a in live
+    a.label: {b.label: s + 1 for b in valves if a != b and b.rate > 0 and (s := shortest(a, b))}
+    for a in valves if a.label == start or a.rate > 0
   }
 
 def find_solution(all_valves, time, num_actors=1):
@@ -33,16 +32,18 @@ def find_solution(all_valves, time, num_actors=1):
   valve_map = {v.label: v for v in all_valves}
   shortcuts = infer_shortcuts(all_valves, start)
   @cache
-  def generate_options(time, total, open_valves, position):
+  def generate_options(time, open_valves, position):
+    result = []
     current_rate = sum(valve_map[valve].rate for valve in open_valves)
-    possible_new_positions = [p for p in shortcuts[position] if p not in open_valves and time > shortcuts[position][p] + 1]
-    yield (total + time * current_rate, open_valves)
+    possible_new_positions = [p for p in shortcuts[position] if p not in open_valves and time > shortcuts[position][p]]
+    result.append((time * current_rate, open_valves))
     for new_position in possible_new_positions:
       new_open_valves = frozenset([*open_valves, new_position])
-      new_time = time - shortcuts[position][new_position] - 1
-      new_total = total + (time - new_time) * current_rate
-      yield from generate_options(new_time, new_total, new_open_valves, new_position)
-  options = list(generate_options(time, 0, frozenset(), start))
+      new_time = time - shortcuts[position][new_position]
+      for option in generate_options(new_time, new_open_valves, new_position):
+        result.append((shortcuts[position][new_position] * current_rate + option[0], option[1]))
+    return result
+  options = generate_options(time, frozenset(), start)
   if num_actors == 1:
     return max(total for (total, _) in options)
   elif num_actors == 2:
