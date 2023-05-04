@@ -17,8 +17,8 @@ class Test(TestCase):
 
   def test_parse_valves(self):
     valves = parse_valves(Test.example_lines)
-    self.assertEqual(valves[0], Valve('AA', 0, ['DD', 'II', 'BB']))
-    self.assertEqual(valves[-1], Valve('JJ', 21, ['II']))
+    self.assertEqual(valves['AA'], Valve('AA', 0, ['DD', 'II', 'BB']))
+    self.assertEqual(valves['JJ'], Valve('JJ', 21, ['II']))
 
   def test_infer_shortcuts(self):
     actual = infer_shortcuts(parse_valves(Test.example_lines), 'AA')

@@ -14,23 +14,22 @@ def parse_valves(lines):
   def parse_valve(line):
     [label, rate_str, *leads_to] = re.findall(r'\b[A-Z0-9]+\b', line)
     return Valve(label, int(rate_str), leads_to)
-  return [parse_valve(line) for line in lines]
+  valves = [parse_valve(line) for line in lines]
+  return {v.label: v for v in valves}
 
-def infer_shortcuts(valves, start):
-  valve_map = {v.label: v for v in valves}
+def infer_shortcuts(valve_map, start):
   def shortest(a, b, dist=0, seen=set()):
     if b.label in a.leads_to:
       return dist + 1
     return min([s for l in a.leads_to if l not in seen and (s := shortest(valve_map[l], b, dist + 1, {*seen, a.label}))], default=None)
   return {
-    a.label: {b.label: s + 1 for b in valves if a != b and b.rate > 0 and (s := shortest(a, b))}
-    for a in valves if a.label == start or a.rate > 0
+    a.label: {b.label: s + 1 for b in valve_map.values() if a != b and b.rate > 0 and (s := shortest(a, b))}
+    for a in valve_map.values() if a.label == start or a.rate > 0
   }
 
-def find_solution(all_valves, time, num_actors=1):
+def find_solution(valve_map, time, num_actors=1):
   start = 'AA'
-  valve_map = {v.label: v for v in all_valves}
-  shortcuts = infer_shortcuts(all_valves, start)
+  shortcuts = infer_shortcuts(valve_map, start)
   @cache
   def generate_options(time, open_valves, position):
     result = []
@@ -50,8 +49,8 @@ def find_solution(all_valves, time, num_actors=1):
     return max(t1 + t2 for ((t1, o1), (t2, o2)) in product(options, options) if o1.isdisjoint(o2))
 
 def solve_puzzle(lines):
-  all_valves = parse_valves(lines)
-  return (find_solution(all_valves, 30), find_solution(all_valves, 26, 2))
+  valve_map = parse_valves(lines)
+  return (find_solution(valve_map, 30), find_solution(valve_map, 26, 2))
 
 def main():
   lines = sys.stdin.read().splitlines()
