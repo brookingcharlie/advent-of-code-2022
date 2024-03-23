@@ -13,11 +13,10 @@ class State:
   robots: tuple[int] = (1, 0, 0, 0)
   balance: tuple[int] = (0, 0, 0, 0)
 
-  def next_states(self, blueprint):
-    return compute_next_states(self.robots, self.balance, blueprint.robot_costs)
-
 @cache
-def compute_next_states(robots, balance, robot_costs):
+def compute_max_geodes(mins_left, robots, balance, robot_costs):
+  if mins_left == 0:
+    return balance[3]
   inert_state = State(robots, tuple((b + r) for (b, r) in zip(balance, robots)))
   spend_states = [
     State(
@@ -25,9 +24,16 @@ def compute_next_states(robots, balance, robot_costs):
       tuple((b + r - c) for (b, r, c) in zip(balance, robots, cost))
     )
     for (i, cost) in enumerate(robot_costs)
-    if all(b >= c for (b, c) in zip(balance, cost))
+    if (
+      all(b >= c for (b, c) in zip(balance, cost)) and
+      (i == 3 or any(robot_cost[i] * mins_left > robots[i] * mins_left + balance[i] for robot_cost in robot_costs))
+    )
   ]
-  return set([inert_state, *spend_states])
+  next_states = [inert_state, *spend_states]
+  return max(
+    compute_max_geodes(mins_left - 1, next_state.robots, next_state.balance, robot_costs)
+    for next_state in next_states
+  )
 
 def parse_blueprints(lines):
   def parse_blueprint(line):
@@ -48,11 +54,9 @@ def parse_blueprints(lines):
   return [parse_blueprint(line) for line in lines]
 
 def max_geodes(blueprint):
-  compute_next_states.cache_clear()
-  states = set([State()])
-  for i in range(24):
-    states = set(x for xs in [s.next_states(blueprint) for s in states] for x in xs)
-  return max(s.balance[3] for s in states)
+  compute_max_geodes.cache_clear()
+  state = State()
+  return compute_max_geodes(24, state.robots, state.balance, blueprint.robot_costs)
 
 def solve_puzzle(lines):
   blueprints = parse_blueprints(lines)

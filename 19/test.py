@@ -27,63 +27,6 @@ class Test(TestCase):
     ]
     self.assertEqual(actual, expected)
 
-  def test_state_0(self):
-    self.assertEqual(State(), State((1, 0, 0, 0), (0, 0, 0, 0)))
-
-  def test_next_states_1(self):
-    state = State()
-    actual = state.next_states(parse_blueprints(Test.lines)[0])
-    expected = set([
-      State((1, 0, 0, 0), (1, 0, 0, 0)),
-    ])
-    self.assertEqual(actual, expected)
-
-  def test_next_states_2(self):
-    state = State((1, 0, 0, 0), (1, 0, 0, 0))
-    actual = state.next_states(parse_blueprints(Test.lines)[0])
-    expected = set([
-      State((1, 0, 0, 0), (2, 0, 0, 0)),
-    ])
-    self.assertEqual(actual, expected)
-
-  def test_next_states_3(self):
-    state = State((1, 0, 0, 0), (2, 0, 0, 0))
-    actual = state.next_states(parse_blueprints(Test.lines)[0])
-    expected = set([
-      State((1, 0, 0, 0), (3, 0, 0, 0)),
-      State((1, 1, 0, 0), (1, 0, 0, 0)),
-    ])
-    self.assertEqual(actual, expected)
-
-  def test_next_states_18(self):
-    state = State((1, 4, 2, 0), (3, 13, 8, 0))
-    actual = state.next_states(parse_blueprints(Test.lines)[0])
-    expected = set([
-      State((1, 4, 2, 0), (4, 17, 10, 0)),
-      State((1, 5, 2, 0), (2, 17, 10, 0)),
-      State((1, 4, 2, 1), (2, 17, 3, 0)),
-    ])
-    self.assertEqual(actual, expected)
-
-  def test_next_states_19(self):
-    state = State((1, 4, 2, 1), (2, 17, 3, 0))
-    actual = state.next_states(parse_blueprints(Test.lines)[0])
-    expected = set([
-      State((1, 4, 2, 1), (3, 21, 5, 1)),
-      State((1, 5, 2, 1), (1, 21, 5, 1)),
-    ])
-    self.assertEqual(actual, expected)
-
-  def test_next_states_20(self):
-    state = State((1, 4, 2, 1), (3, 21, 5, 1))
-    actual = state.next_states(parse_blueprints(Test.lines)[0])
-    expected = set([
-      State((1, 4, 2, 1), (4, 25, 7, 2)),
-      State((1, 5, 2, 1), (2, 25, 7, 2)),
-      State((1, 4, 3, 1), (1, 11, 7, 2)),
-    ])
-    self.assertEqual(actual, expected)
-
   def test_max_geodes_blueprint_1(self):
     self.assertEqual(max_geodes(parse_blueprints(Test.lines)[0]), 9)
 
