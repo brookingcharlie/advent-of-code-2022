@@ -17,6 +17,8 @@ class State:
 def compute_max_geodes(mins_left, robots, balance, robot_costs):
   if mins_left == 0:
     return balance[3]
+  if mins_left == 1:
+    return balance[3] + robots[3]
   inert_state = State(robots, tuple((b + r) for (b, r) in zip(balance, robots)))
   spend_states = [
     State(
@@ -26,14 +28,12 @@ def compute_max_geodes(mins_left, robots, balance, robot_costs):
     for (i, cost) in enumerate(robot_costs)
     if (
       all(b >= c for (b, c) in zip(balance, cost)) and
+      (i == 3 or mins_left > 2) and
       (i == 3 or any(robot_cost[i] * mins_left > robots[i] * mins_left + balance[i] for robot_cost in robot_costs))
     )
   ]
   next_states = [inert_state, *spend_states]
-  return max(
-    compute_max_geodes(mins_left - 1, next_state.robots, next_state.balance, robot_costs)
-    for next_state in next_states
-  )
+  return max(compute_max_geodes(mins_left - 1, s.robots, s.balance, robot_costs) for s in next_states)
 
 def parse_blueprints(lines):
   def parse_blueprint(line):
