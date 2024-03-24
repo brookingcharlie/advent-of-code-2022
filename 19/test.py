@@ -1,5 +1,5 @@
 from unittest import TestCase
-from main import Blueprint, State, parse_blueprints, max_geodes, solve_puzzle
+from main import Blueprint, State, parse_blueprints, solve_puzzle
 
 class Test(TestCase):
   lines = [
@@ -28,10 +28,10 @@ class Test(TestCase):
     self.assertEqual(actual, expected)
 
   def test_max_geodes_blueprint_1(self):
-    self.assertEqual(max_geodes(parse_blueprints(Test.lines)[0]), 9)
+    self.assertEqual(State().max_geodes(parse_blueprints(Test.lines)[0].costs), 9)
 
   def test_max_geodes_blueprint_2(self):
-    self.assertEqual(max_geodes(parse_blueprints(Test.lines)[1]), 12)
+    self.assertEqual(State().max_geodes(parse_blueprints(Test.lines)[1].costs), 12)
 
   def test_solve_puzzle(self):
     self.assertEqual(solve_puzzle(Test.lines), 33)
