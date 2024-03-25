@@ -27,11 +27,17 @@ class Test(TestCase):
     ]
     self.assertEqual(actual, expected)
 
-  def test_max_geodes_blueprint_1(self):
-    self.assertEqual(State().max_geodes(parse_blueprints(Test.lines)[0].costs), 9)
+  def test_max_geodes_24_mins_blueprint_1(self):
+    self.assertEqual(State(24).max_geodes(parse_blueprints(Test.lines)[0].costs), 9)
 
-  def test_max_geodes_blueprint_2(self):
-    self.assertEqual(State().max_geodes(parse_blueprints(Test.lines)[1].costs), 12)
+  def test_max_geodes_24_mins_blueprint_2(self):
+    self.assertEqual(State(24).max_geodes(parse_blueprints(Test.lines)[1].costs), 12)
+
+  def test_max_geodes_32_mins_blueprint_1(self):
+    self.assertEqual(State(32).max_geodes(parse_blueprints(Test.lines)[0].costs), 56)
+
+  def test_max_geodes_32_mins_blueprint_2(self):
+    self.assertEqual(State(32).max_geodes(parse_blueprints(Test.lines)[1].costs), 62)
 
   def test_solve_puzzle(self):
-    self.assertEqual(solve_puzzle(Test.lines), 33)
+    self.assertEqual(solve_puzzle(Test.lines), (33, 3472))

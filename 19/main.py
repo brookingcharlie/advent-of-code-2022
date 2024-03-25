@@ -1,7 +1,7 @@
 import sys
 from dataclasses import dataclass
 from functools import cache
-from math import ceil
+from math import ceil, prod
 import re
 
 @dataclass(frozen=True)
@@ -11,7 +11,7 @@ class Blueprint:
 
 @dataclass(frozen=True)
 class State:
-  mins_left: [int] = 24
+  mins_left: [int]
   balance: tuple[int] = (0, 0, 0, 0)
   robots: tuple[int] = (1, 0, 0, 0)
 
@@ -68,7 +68,10 @@ def parse_blueprints(lines):
 
 def solve_puzzle(lines):
   blueprints = parse_blueprints(lines)
-  return sum([b.blueprint_id * State().max_geodes(b.costs) for b in blueprints])
+  return (
+    sum([b.blueprint_id * State(24).max_geodes(b.costs) for b in blueprints]),
+    prod([State(32).max_geodes(b.costs) for b in blueprints[:3]])
+  )
 
 def main():
   lines = sys.stdin.read().splitlines()
