@@ -1,8 +1,8 @@
 import sys
 from math import floor
 
-def parse_numbers(lines):
-  return [int(line) for line in lines]
+def parse_numbers(lines, decryption_key):
+  return [int(line) * decryption_key for line in lines]
 
 def mix_number(mixed, item):
   i = mixed.index(item)
@@ -14,18 +14,22 @@ def mix_number(mixed, item):
   mixed.insert(j, item)
   return mixed
 
-def mix_numbers(numbers):
+def mix_numbers(numbers, iterations):
   enumerated = list(enumerate(numbers))
   mixed = enumerated.copy()
-  for item in enumerated:
-    mix_number(mixed, item)
+  for _ in range(iterations):
+    for item in enumerated:
+      mix_number(mixed, item)
   return [n for (_, n) in mixed]
 
-def solve_puzzle(lines):
-  numbers = parse_numbers(lines)
-  mixed = mix_numbers(numbers)
+def solve_puzzle_part(lines, decryption_key, iterations):
+  numbers = parse_numbers(lines, decryption_key)
+  mixed = mix_numbers(numbers, iterations)
   zero_i = mixed.index(0)
   return sum(mixed[(zero_i + offset) % len(mixed)] for offset in [1000, 2000, 3000])
+
+def solve_puzzle(lines):
+  return (solve_puzzle_part(lines, 1, 1), solve_puzzle_part(lines, 811589153, 10))
 
 def main():
   lines = sys.stdin.read().splitlines()
