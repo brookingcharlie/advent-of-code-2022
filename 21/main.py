@@ -47,11 +47,6 @@ class Operation(Expression):
       case Operator.DIVIDE:
         return self.left.evaluate(scope) // self.right.evaluate(scope)
 
-@dataclass
-class Monkey():
-  name: str
-  expression: Expression
-
 def parse_operator(s):
   match s:
     case '+':
@@ -69,17 +64,52 @@ def parse_expression(s):
   elif match := re.findall(r'(\w+) (\+|\-|\*|\/) (\w+)', s):
     return Operation(parse_operator(match[0][1]), Reference(match[0][0]), Reference(match[0][2]))
 
-def parse_monkey(line):
-  [(name, expr)] = re.findall(r'(\w+): (.+)', line)
-  return Monkey(name, parse_expression(expr))
+def parse_line(line):
+  [(name, expression)] = re.findall(r'(\w+): (.+)', line)
+  return (name, parse_expression(expression))
 
-def parse_monkeys(lines):
-  return [parse_monkey(line) for line in lines]
+def parse_lines(lines):
+  monkeys = [parse_line(line) for line in lines]
+  return {name: expression for (name, expression) in monkeys}
+
+def find_variables(scope, root, leaf):
+  variables = [leaf]
+  current = leaf
+  while current != root:
+    parent = next(
+      name for (name, expression) in scope.items()
+      if type(expression) == Operation and current in [expression.left.name, expression.right.name]
+    )
+    variables.append(parent)
+    current = parent
+  variables.reverse()
+  return variables
+
+def solve_part_1(scope):
+  return scope['root'].evaluate(scope)
+
+def solve_part_2(scope):
+  variables = find_variables(scope, 'root', 'humn')
+  root: Operation = scope['root']
+  answer = (root.left if root.right.name in variables else root.right).evaluate(scope)
+  for variable in variables[1:-1]:
+    operation = scope[variable]
+    match operation.operator:
+      case Operator.ADD:
+        solve = lambda answer, constant, constant_on_left: answer - constant
+      case Operator.SUBTRACT:
+        solve = lambda answer, constant, constant_on_left: constant - answer if constant_on_left else answer + constant
+      case Operator.MULTIPLY:
+        solve = lambda answer, constant, constant_on_left: answer // constant
+      case Operator.DIVIDE:
+        solve = lambda answer, constant, constant_on_left: constant // answer if constant_on_left else answer * constant
+    (constant, constant_on_left) = (operation.left, True) if operation.right.name in variables else (operation.right, False)
+    answer = solve(answer, constant.evaluate(scope), constant_on_left)
+  return answer
 
 def solve_puzzle(lines):
-  monkeys = parse_monkeys(lines)
-  scope = {monkey.name: monkey.expression for monkey in monkeys}
-  return scope['root'].evaluate(scope)
+  scope = parse_lines(lines)
+  return (solve_part_1(scope), solve_part_2(scope))
 
 def main():
   lines = sys.stdin.read().splitlines()

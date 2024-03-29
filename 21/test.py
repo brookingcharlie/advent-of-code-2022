@@ -1,7 +1,7 @@
 from unittest import TestCase
 from main import (
-  Monkey, Number, Operator, Operation, Reference,
-  parse_monkeys, solve_puzzle
+  Number, Operator, Operation, Reference,
+  parse_lines, find_variables, solve_puzzle
 )
 
 class Test(TestCase):
@@ -23,13 +23,17 @@ class Test(TestCase):
     'hmdt: 32',
   ]
 
-  def test_parse_monkeys(self):
-    monkeys = parse_monkeys(Test.lines)
-    self.assertEqual(monkeys[0], Monkey('root', Operation(Operator.ADD, Reference('pppw'), Reference('sjmn'))))
-    self.assertEqual(monkeys[4], Monkey('ptdq', Operation(Operator.SUBTRACT, Reference('humn'), Reference('dvpt'))))
-    self.assertEqual(monkeys[11], Monkey('pppw', Operation(Operator.DIVIDE, Reference('cczh'), Reference('lfqf'))))
-    self.assertEqual(monkeys[12], Monkey('lgvd', Operation(Operator.MULTIPLY, Reference('ljgn'), Reference('ptdq'))))
-    self.assertEqual(monkeys[14], Monkey('hmdt', Number(32)))
+  def test_parse_lines(self):
+    monkeys = parse_lines(Test.lines)
+    self.assertEqual(monkeys['root'], Operation(Operator.ADD, Reference('pppw'), Reference('sjmn')))
+    self.assertEqual(monkeys['ptdq'], Operation(Operator.SUBTRACT, Reference('humn'), Reference('dvpt')))
+    self.assertEqual(monkeys['pppw'], Operation(Operator.DIVIDE, Reference('cczh'), Reference('lfqf')))
+    self.assertEqual(monkeys['lgvd'], Operation(Operator.MULTIPLY, Reference('ljgn'), Reference('ptdq')))
+    self.assertEqual(monkeys['hmdt'], Number(32))
+
+  def test_find_variables(self):
+    monkeys = parse_lines(Test.lines)
+    self.assertEqual(find_variables(monkeys, 'root', 'humn'), ['root', 'pppw', 'cczh', 'lgvd', 'ptdq', 'humn'])
 
   def test_solve_puzzle(self):
-    self.assertEqual(solve_puzzle(Test.lines), 152)
+    self.assertEqual(solve_puzzle(Test.lines), (152, 301))
