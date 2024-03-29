@@ -10,12 +10,19 @@ class Expression(ABC):
   def evaluate(self, scope):
     pass
 
+  @abstractmethod
+  def solve(self, scope, variables, answer):
+    pass
+
 @dataclass
 class Number(Expression):
   value: int
 
   def evaluate(self, scope):
     return self.value
+
+  def solve(self, scope, variables, answer):
+    return answer
 
 class Operator(Enum):
   ADD = auto()
@@ -24,28 +31,46 @@ class Operator(Enum):
   DIVIDE = auto()
 
 @dataclass
-class Reference(Expression):
-  name: str
-
-  def evaluate(self, scope):
-    return scope[self.name].evaluate(scope)
-
-@dataclass
 class Operation(Expression):
   operator: Operator
-  left: Reference
-  right: Reference
+  left: str
+  right: str
 
   def evaluate(self, scope):
     match self.operator:
       case Operator.ADD:
-        return self.left.evaluate(scope) + self.right.evaluate(scope)
+        return scope[self.left].evaluate(scope) + scope[self.right].evaluate(scope)
       case Operator.SUBTRACT:
-        return self.left.evaluate(scope) - self.right.evaluate(scope)
+        return scope[self.left].evaluate(scope) - scope[self.right].evaluate(scope)
       case Operator.MULTIPLY:
-        return self.left.evaluate(scope) * self.right.evaluate(scope)
+        return scope[self.left].evaluate(scope) * scope[self.right].evaluate(scope)
       case Operator.DIVIDE:
-        return self.left.evaluate(scope) // self.right.evaluate(scope)
+        return scope[self.left].evaluate(scope) // scope[self.right].evaluate(scope)
+
+  def solve(self, scope, variables, answer):
+    match self.operator:
+      case Operator.ADD:
+        variable_answer = (
+          answer - scope[self.right].evaluate(scope) if self.left in variables else
+          answer - scope[self.left].evaluate(scope)
+        )
+      case Operator.SUBTRACT:
+        variable_answer = (
+          answer + scope[self.right].evaluate(scope) if self.left in variables else
+          scope[self.left].evaluate(scope) - answer
+        )
+      case Operator.MULTIPLY:
+        variable_answer = (
+          answer // scope[self.right].evaluate(scope) if self.left in variables else
+          answer // scope[self.left].evaluate(scope)
+        )
+      case Operator.DIVIDE:
+        variable_answer = (
+          answer * scope[self.right].evaluate(scope) if self.left in variables else
+          scope[self.left].evaluate(scope) // answer
+        )
+    variable_operation = scope[self.left if self.left in variables else self.right]
+    return variable_operation.solve(scope, variables, variable_answer)
 
 def parse_operator(s):
   match s:
@@ -62,7 +87,7 @@ def parse_expression(s):
   if match := re.findall(r'(\d+)', s):
     return Number(int(match[0]))
   elif match := re.findall(r'(\w+) (\+|\-|\*|\/) (\w+)', s):
-    return Operation(parse_operator(match[0][1]), Reference(match[0][0]), Reference(match[0][2]))
+    return Operation(parse_operator(match[0][1]), match[0][0], match[0][2])
 
 def parse_line(line):
   [(name, expression)] = re.findall(r'(\w+): (.+)', line)
@@ -78,7 +103,7 @@ def find_variables(scope, root, leaf):
   while current != root:
     parent = next(
       name for (name, expression) in scope.items()
-      if type(expression) == Operation and current in [expression.left.name, expression.right.name]
+      if type(expression) == Operation and current in [expression.left, expression.right]
     )
     variables.append(parent)
     current = parent
@@ -91,21 +116,8 @@ def solve_part_1(scope):
 def solve_part_2(scope):
   variables = find_variables(scope, 'root', 'humn')
   root: Operation = scope['root']
-  answer = (root.left if root.right.name in variables else root.right).evaluate(scope)
-  for variable in variables[1:-1]:
-    operation = scope[variable]
-    match operation.operator:
-      case Operator.ADD:
-        solve = lambda answer, constant, constant_on_left: answer - constant
-      case Operator.SUBTRACT:
-        solve = lambda answer, constant, constant_on_left: constant - answer if constant_on_left else answer + constant
-      case Operator.MULTIPLY:
-        solve = lambda answer, constant, constant_on_left: answer // constant
-      case Operator.DIVIDE:
-        solve = lambda answer, constant, constant_on_left: constant // answer if constant_on_left else answer * constant
-    (constant, constant_on_left) = (operation.left, True) if operation.right.name in variables else (operation.right, False)
-    answer = solve(answer, constant.evaluate(scope), constant_on_left)
-  return answer
+  answer = scope[root.left if root.left not in variables else root.right].evaluate(scope)
+  return scope[variables[1]].solve(scope, variables, answer)
 
 def solve_puzzle(lines):
   scope = parse_lines(lines)

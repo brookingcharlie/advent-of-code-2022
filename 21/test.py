@@ -1,6 +1,6 @@
 from unittest import TestCase
 from main import (
-  Number, Operator, Operation, Reference,
+  Number, Operator, Operation,
   parse_lines, find_variables, solve_puzzle
 )
 
@@ -25,10 +25,10 @@ class Test(TestCase):
 
   def test_parse_lines(self):
     monkeys = parse_lines(Test.lines)
-    self.assertEqual(monkeys['root'], Operation(Operator.ADD, Reference('pppw'), Reference('sjmn')))
-    self.assertEqual(monkeys['ptdq'], Operation(Operator.SUBTRACT, Reference('humn'), Reference('dvpt')))
-    self.assertEqual(monkeys['pppw'], Operation(Operator.DIVIDE, Reference('cczh'), Reference('lfqf')))
-    self.assertEqual(monkeys['lgvd'], Operation(Operator.MULTIPLY, Reference('ljgn'), Reference('ptdq')))
+    self.assertEqual(monkeys['root'], Operation(Operator.ADD, 'pppw', 'sjmn'))
+    self.assertEqual(monkeys['ptdq'], Operation(Operator.SUBTRACT, 'humn', 'dvpt'))
+    self.assertEqual(monkeys['pppw'], Operation(Operator.DIVIDE, 'cczh', 'lfqf'))
+    self.assertEqual(monkeys['lgvd'], Operation(Operator.MULTIPLY, 'ljgn', 'ptdq'))
     self.assertEqual(monkeys['hmdt'], Number(32))
 
   def test_find_variables(self):
