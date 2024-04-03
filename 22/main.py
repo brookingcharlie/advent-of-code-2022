@@ -32,20 +32,11 @@ class Turn(Action):
 @dataclass
 class Board():
   tiles: list[list[Tile]]
-  __x_flipped_tiles: list[list[Tile]] = None
-  __y_flipped_tiles: list[list[Tile]] = None
 
   def __post_init__(self):
-    self.__x_flipped_tiles = [
-      [self.tiles[i][len(self.tiles[i]) - j - 1]
-      for j in range(len(self.tiles[i]))]
-      for i in range(len(self.tiles))
-    ]
-    self.__y_flipped_tiles = [
-      [self.tiles[len(self.tiles) - i - 1][j]
-      for j in range(len(self.tiles[i]))]
-      for i in range(len(self.tiles))
-    ]
+    self.__tiles_90 = list(zip(*reversed(self.tiles)))
+    self.__tiles_180 = list(zip(*reversed(self.__tiles_90)))
+    self.__tiles_270 = list(zip(*reversed(self.__tiles_180)))
 
   def get_tile(self, point):
     return self.tiles[point[0] - 1][point[1] - 1]
@@ -55,37 +46,13 @@ class Board():
 
   @staticmethod
   def __move_right(tiles, start_i, start_j, distance):
-    min_j = next(j for j in range(len(tiles[start_i])) if tiles[start_i][j] is not None)
-    max_j = next(
-      (j - 1 for j in range(start_j, len(tiles[start_i])) if tiles[start_i][j] is None),
-      len(tiles[start_i]) - 1
-    )
-    wall_j = next(
-      (j for j in range(start_j + 1, len(tiles[start_i])) if tiles[start_i][j] == Tile.WALL),
-      sys.maxsize
-    )
+    min_j = next(j for (j, t) in enumerate(tiles[start_i]) if t is not None)
+    max_j = next((j for (j, t) in enumerate(tiles[start_i]) if j > start_j and t is None), len(tiles[start_i])) - 1
+    wall_j = next((j for (j, t) in enumerate(tiles[start_i]) if j > start_j and t == Tile.WALL), sys.maxsize)
     end_j = min(start_j + distance, wall_j - 1)
     if end_j > max_j:
-      moved = max_j - start_j + 1
-      return Board.__move_right(tiles, start_i, min_j, distance - moved)
+      return Board.__move_right(tiles, start_i, min_j, (distance % len(tiles[start_i])) - (max_j - start_j) - 1)
     return end_j
-
-  @staticmethod
-  def __move_down(tiles, start_i, start_j, distance):
-    min_i = next(i for i in range(len(tiles)) if tiles[i][start_j] is not None)
-    max_i = next(
-      (i - 1 for i in range(start_i, len(tiles)) if tiles[i][start_j] is None),
-      len(tiles) - 1
-    )
-    wall_i = next(
-      (i for i in range(start_i + 1, len(tiles)) if tiles[i][start_j] == Tile.WALL),
-      sys.maxsize
-    )
-    end_i = min(start_i + distance, wall_i - 1)
-    if end_i > max_i:
-      moved = max_i - start_i + 1
-      return Board.__move_down(tiles, min_i, start_j, distance - moved)
-    return end_i
 
   def apply_action(self, start, action):
     ((start_row, start_col), start_facing) = start
@@ -93,20 +60,22 @@ class Board():
     match (start_facing, action):
       case (Facing.RIGHT, Move(distance)):
         end_j = Board.__move_right(self.tiles, start_i, start_j, distance)
-        return ((start_i + 1, end_j + 1), Facing.RIGHT)
+        return ((start_row, end_j + 1), Facing.RIGHT)
       case (Facing.LEFT, Move(distance)):
-        flipped_start_j = len(self.tiles[start_i]) - start_j - 1
-        flipped_end_j = Board.__move_right(self.__x_flipped_tiles, start_i, flipped_start_j, distance)
-        unflipped_end_j = len(self.tiles[start_i]) - flipped_end_j - 1
-        return ((start_i + 1, unflipped_end_j + 1), Facing.LEFT)
+        (start_i_180, start_j_180) = (len(self.tiles) - start_i - 1, len(self.tiles[start_i]) - start_j - 1)
+        end_j_180 = Board.__move_right(self.__tiles_180, start_i_180, start_j_180, distance)
+        end_j = len(self.tiles[start_i]) - end_j_180 - 1
+        return ((start_row, end_j + 1), Facing.LEFT)
       case (Facing.DOWN, Move(distance)):
-        end_i = Board.__move_down(self.tiles, start_i, start_j, distance)
-        return ((end_i + 1, start_j + 1), Facing.DOWN)
+        (start_i_270, start_j_270) = (len(self.tiles[start_i]) - start_j - 1, start_i)
+        end_j_270 = Board.__move_right(self.__tiles_270, start_i_270, start_j_270, distance)
+        end_i = end_j_270
+        return ((end_i + 1, start_col), Facing.DOWN)
       case (Facing.UP, Move(distance)):
-        flipped_start_i = len(self.tiles) - start_i - 1
-        flipped_end_i = Board.__move_down(self.__y_flipped_tiles, flipped_start_i, start_j, distance)
-        unflipped_end_i = len(self.tiles) - flipped_end_i - 1
-        return ((unflipped_end_i + 1, start_j + 1), Facing.UP)
+        (start_i_90, start_j_90) = (start_j, len(self.tiles) - start_i - 1)
+        end_j_90 = Board.__move_right(self.__tiles_90, start_i_90, start_j_90, distance)
+        end_i = len(self.tiles) - end_j_90 - 1
+        return ((end_i + 1, start_col), Facing.UP)
       case (Facing.UP, Turn(Rotate.RIGHT)): return ((start_row, start_col), Facing.RIGHT)
       case (Facing.RIGHT, Turn(Rotate.RIGHT)): return ((start_row, start_col), Facing.DOWN)
       case (Facing.DOWN, Turn(Rotate.RIGHT)): return ((start_row, start_col), Facing.LEFT)
