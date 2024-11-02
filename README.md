@@ -2,7 +2,7 @@
 
 My solutions for [Advent of Code 2022](https://adventofcode.com/2022/).
 
-Advent of Code is a series of small programming puzzles - one per day throughout
+Advent of Code is a series of small programming puzzles - one per day, throughout
 1-25 of December - that can be solved in any programming language.
 
 I chose to learn a bit more Python.
